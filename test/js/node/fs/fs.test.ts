@@ -54,6 +54,8 @@ function mkdirForce(path: string) {
   if (!existsSync(path)) mkdirSync(path, { recursive: true });
 }
 
+const itif = (condition: boolean) => (condition ? it : it.skip);
+
 it("writeFileSync in append should not truncate the file", () => {
   const path = join(tmpdir(), "writeFileSync-should-not-append-" + (Date.now() * 10000).toString(16));
   var str = "";
@@ -1434,7 +1436,8 @@ describe("fs/promises", () => {
   });
 });
 
-it("stat on a large file", () => {
+// Only run this test in GitHub Action.
+itif(process.env.CI === "true")("stat on a large file", () => {
   var dest: string = "",
     fd;
   try {
