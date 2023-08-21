@@ -387,6 +387,10 @@ export default [
         getter: "getName",
         cache: true,
       },
+      path: {
+        getter: "getPath",
+        cache: true,
+      },
     },
   }),
   define({

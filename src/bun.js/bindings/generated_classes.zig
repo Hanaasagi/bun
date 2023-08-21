@@ -1471,6 +1471,28 @@ pub const JSDirent = struct {
         return result;
     }
 
+    extern fn DirentPrototype__pathSetCachedValue(JSC.JSValue, *JSC.JSGlobalObject, JSC.JSValue) void;
+
+    extern fn DirentPrototype__pathGetCachedValue(JSC.JSValue) JSC.JSValue;
+
+    /// `Dirent.path` setter
+    /// This value will be visited by the garbage collector.
+    pub fn pathSetCached(thisValue: JSC.JSValue, globalObject: *JSC.JSGlobalObject, value: JSC.JSValue) void {
+        JSC.markBinding(@src());
+        DirentPrototype__pathSetCachedValue(thisValue, globalObject, value);
+    }
+
+    /// `Dirent.path` getter
+    /// This value will be visited by the garbage collector.
+    pub fn pathGetCached(thisValue: JSC.JSValue) ?JSC.JSValue {
+        JSC.markBinding(@src());
+        const result = DirentPrototype__pathGetCachedValue(thisValue);
+        if (result == .zero)
+            return null;
+
+        return result;
+    }
+
     /// Get the Dirent constructor value.
     /// This loads lazily from the global object.
     pub fn getConstructor(globalObject: *JSC.JSGlobalObject) JSC.JSValue {
@@ -1535,10 +1557,14 @@ pub const JSDirent = struct {
         if (@TypeOf(Dirent.getName) != GetterType)
             @compileLog("Expected Dirent.getName to be a getter");
 
+        if (@TypeOf(Dirent.getPath) != GetterType)
+            @compileLog("Expected Dirent.getPath to be a getter");
+
         if (!JSC.is_bindgen) {
             @export(Dirent.constructor, .{ .name = "DirentClass__construct" });
             @export(Dirent.finalize, .{ .name = "DirentClass__finalize" });
             @export(Dirent.getName, .{ .name = "DirentPrototype__getName" });
+            @export(Dirent.getPath, .{ .name = "DirentPrototype__getPath" });
             @export(Dirent.isBlockDevice, .{ .name = "DirentPrototype__isBlockDevice" });
             @export(Dirent.isCharacterDevice, .{ .name = "DirentPrototype__isCharacterDevice" });
             @export(Dirent.isDirectory, .{ .name = "DirentPrototype__isDirectory" });

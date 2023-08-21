@@ -623,6 +623,7 @@ public:
     DECLARE_VISIT_OUTPUT_CONSTRAINTS;
 
     mutable JSC::WriteBarrier<JSC::Unknown> m_name;
+    mutable JSC::WriteBarrier<JSC::Unknown> m_path;
 };
 
 class JSDocEnd final : public JSC::JSDestructibleObject {

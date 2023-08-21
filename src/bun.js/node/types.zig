@@ -1579,6 +1579,7 @@ pub const Stats = union(enum) {
 /// closed after the iterator exits.
 /// @since v12.12.0
 pub const Dirent = struct {
+    path: bun.String, // Added in: Node v20.1.0
     name: bun.String,
     // not publicly exposed
     kind: Kind,
@@ -1593,6 +1594,10 @@ pub const Dirent = struct {
 
     pub fn getName(this: *Dirent, globalObject: *JSC.JSGlobalObject) callconv(.C) JSC.JSValue {
         return this.name.toJS(globalObject);
+    }
+
+    pub fn getPath(this: *Dirent, globalObject: *JSC.JSGlobalObject) callconv(.C) JSC.JSValue {
+        return this.path.toJS(globalObject);
     }
 
     pub fn isBlockDevice(
@@ -1647,6 +1652,7 @@ pub const Dirent = struct {
 
     pub fn finalize(this: *Dirent) callconv(.C) void {
         this.name.deref();
+        this.path.deref();
         bun.default_allocator.destroy(this);
     }
 };

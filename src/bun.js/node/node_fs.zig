@@ -4055,6 +4055,7 @@ pub const NodeFS = struct {
             switch (comptime ExpectedType) {
                 Dirent => {
                     entries.append(.{
+                        .path = args.path.slice_with_underlying_string.underlying.dupeRef(),
                         .name = bun.String.create(utf8_name),
                         .kind = current.kind,
                     }) catch unreachable;
@@ -4392,13 +4393,11 @@ pub const NodeFS = struct {
                         },
                         else => if (args.path == .slice_with_underlying_string and
                             strings.eqlLong(args.path.slice_with_underlying_string.slice(), outbuf[0..len], true))
-                            .{
-                                .BunString = args.path.slice_with_underlying_string.underlying.dupeRef(),
-                            }
-                        else
-                            .{
-                                .BunString = bun.String.create(outbuf[0..len]),
-                            },
+                        .{
+                            .BunString = args.path.slice_with_underlying_string.underlying.dupeRef(),
+                        } else .{
+                            .BunString = bun.String.create(outbuf[0..len]),
+                        },
                     },
                 };
             },
@@ -4450,13 +4449,11 @@ pub const NodeFS = struct {
                 },
                 else => if (args.path == .slice_with_underlying_string and
                     strings.eqlLong(args.path.slice_with_underlying_string.slice(), buf, true))
-                    .{
-                        .BunString = args.path.slice_with_underlying_string.underlying.dupeRef(),
-                    }
-                else
-                    .{
-                        .BunString = bun.String.create(buf),
-                    },
+                .{
+                    .BunString = args.path.slice_with_underlying_string.underlying.dupeRef(),
+                } else .{
+                    .BunString = bun.String.create(buf),
+                },
             },
         };
     }

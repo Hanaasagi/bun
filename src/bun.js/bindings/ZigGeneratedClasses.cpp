@@ -5115,6 +5115,9 @@ JSC_DECLARE_HOST_FUNCTION(DirentPrototype__isSymbolicLinkCallback);
 extern "C" JSC::EncodedJSValue DirentPrototype__getName(void* ptr, JSC::JSGlobalObject* lexicalGlobalObject);
 JSC_DECLARE_CUSTOM_GETTER(DirentPrototype__nameGetterWrap);
 
+extern "C" JSC::EncodedJSValue DirentPrototype__getPath(void* ptr, JSC::JSGlobalObject* lexicalGlobalObject);
+JSC_DECLARE_CUSTOM_GETTER(DirentPrototype__pathGetterWrap);
+
 STATIC_ASSERT_ISO_SUBSPACE_SHARABLE(JSDirentPrototype, JSDirentPrototype::Base);
 
 static const HashTableValue JSDirentPrototypeTableValues[] = {
@@ -5125,7 +5128,8 @@ static const HashTableValue JSDirentPrototypeTableValues[] = {
     { "isFile"_s, static_cast<unsigned>(JSC::PropertyAttribute::Function | PropertyAttribute::DontDelete), NoIntrinsic, { HashTableValue::NativeFunctionType, DirentPrototype__isFileCallback, 0 } },
     { "isSocket"_s, static_cast<unsigned>(JSC::PropertyAttribute::Function | PropertyAttribute::DontDelete), NoIntrinsic, { HashTableValue::NativeFunctionType, DirentPrototype__isSocketCallback, 0 } },
     { "isSymbolicLink"_s, static_cast<unsigned>(JSC::PropertyAttribute::Function | PropertyAttribute::DontDelete), NoIntrinsic, { HashTableValue::NativeFunctionType, DirentPrototype__isSymbolicLinkCallback, 0 } },
-    { "name"_s, static_cast<unsigned>(JSC::PropertyAttribute::ReadOnly | JSC::PropertyAttribute::CustomAccessor | JSC::PropertyAttribute::DOMAttribute | PropertyAttribute::DontDelete), NoIntrinsic, { HashTableValue::GetterSetterType, DirentPrototype__nameGetterWrap, 0 } }
+    { "name"_s, static_cast<unsigned>(JSC::PropertyAttribute::ReadOnly | JSC::PropertyAttribute::CustomAccessor | JSC::PropertyAttribute::DOMAttribute | PropertyAttribute::DontDelete), NoIntrinsic, { HashTableValue::GetterSetterType, DirentPrototype__nameGetterWrap, 0 } },
+    { "path"_s, static_cast<unsigned>(JSC::PropertyAttribute::ReadOnly | JSC::PropertyAttribute::CustomAccessor | JSC::PropertyAttribute::DOMAttribute | PropertyAttribute::DontDelete), NoIntrinsic, { HashTableValue::GetterSetterType, DirentPrototype__pathGetterWrap, 0 } }
 };
 
 const ClassInfo JSDirentPrototype::s_info = { "Dirent"_s, &Base::s_info, nullptr, nullptr, CREATE_METHOD_TABLE(JSDirentPrototype) };
@@ -5369,6 +5373,37 @@ extern "C" EncodedJSValue DirentPrototype__nameGetCachedValue(JSC::EncodedJSValu
     return JSValue::encode(thisObject->m_name.get());
 }
 
+JSC_DEFINE_CUSTOM_GETTER(DirentPrototype__pathGetterWrap, (JSGlobalObject * lexicalGlobalObject, EncodedJSValue thisValue, PropertyName attributeName))
+{
+    auto& vm = lexicalGlobalObject->vm();
+    Zig::GlobalObject* globalObject = reinterpret_cast<Zig::GlobalObject*>(lexicalGlobalObject);
+    auto throwScope = DECLARE_THROW_SCOPE(vm);
+    JSDirent* thisObject = jsCast<JSDirent*>(JSValue::decode(thisValue));
+    JSC::EnsureStillAliveScope thisArg = JSC::EnsureStillAliveScope(thisObject);
+
+    if (JSValue cachedValue = thisObject->m_path.get())
+        return JSValue::encode(cachedValue);
+
+    JSC::JSValue result = JSC::JSValue::decode(
+        DirentPrototype__getPath(thisObject->wrapped(), globalObject));
+    RETURN_IF_EXCEPTION(throwScope, {});
+    thisObject->m_path.set(vm, thisObject, result);
+    RELEASE_AND_RETURN(throwScope, JSValue::encode(result));
+}
+
+extern "C" void DirentPrototype__pathSetCachedValue(JSC::EncodedJSValue thisValue, JSC::JSGlobalObject* globalObject, JSC::EncodedJSValue value)
+{
+    auto& vm = globalObject->vm();
+    auto* thisObject = jsCast<JSDirent*>(JSValue::decode(thisValue));
+    thisObject->m_path.set(vm, thisObject, JSValue::decode(value));
+}
+
+extern "C" EncodedJSValue DirentPrototype__pathGetCachedValue(JSC::EncodedJSValue thisValue)
+{
+    auto* thisObject = jsCast<JSDirent*>(JSValue::decode(thisValue));
+    return JSValue::encode(thisObject->m_path.get());
+}
+
 void JSDirentPrototype::finishCreation(JSC::VM& vm, JSC::JSGlobalObject* globalObject)
 {
     Base::finishCreation(vm);
@@ -5539,6 +5574,7 @@ void JSDirent::visitAdditionalChildren(Visitor& visitor)
     ASSERT_GC_OBJECT_INHERITS(thisObject, info());
 
     visitor.append(thisObject->m_name);
+    visitor.append(thisObject->m_path);
 }
 
 DEFINE_VISIT_ADDITIONAL_CHILDREN(JSDirent);
