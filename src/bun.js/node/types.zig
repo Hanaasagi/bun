@@ -1559,6 +1559,24 @@ pub const Stats = union(enum) {
     }
 };
 
+pub const Dir = struct {
+    path: bun.String,
+
+    pub fn constructor(globalObject: *JSC.JSGlobalObject, _: *JSC.CallFrame) callconv(.C) ?*Dir {
+        globalObject.throw("Dir is not a constructor", .{});
+        return null;
+    }
+
+    pub fn getPath(this: *Dirent, globalObject: *JSC.JSGlobalObject) callconv(.C) JSC.JSValue {
+        return this.path.toJS(globalObject);
+    }
+
+    pub fn finalize(this: *Dir) callconv(.C) void {
+        this.path.deref();
+        bun.default_allocator.destroy(this);
+    }
+};
+
 /// A class representing a directory stream.
 ///
 /// Created by {@link opendir}, {@link opendirSync}, or `fsPromises.opendir()`.

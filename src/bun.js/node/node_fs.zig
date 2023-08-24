@@ -39,6 +39,7 @@ const ReadPosition = i64;
 
 const Stats = JSC.Node.Stats;
 const Dirent = JSC.Node.Dirent;
+const Dir = JSC.Node.Dir;
 
 pub const FlavoredIO = struct {
     io: *AsyncIO,
@@ -3041,6 +3042,30 @@ const Return = struct {
     pub const Lutimes = void;
 
     pub const Writev = Write;
+
+    pub const Opendir = union(Tag) {
+        buffers: []const Buffer,
+        files: []const bun.String,
+
+        pub const Tag = enum {
+            with_file_types,
+            buffers,
+            files,
+        };
+
+        pub fn toJS(this: Opendir, ctx: JSC.C.JSContextRef, exception: JSC.C.ExceptionRef) JSC.C.JSValueRef {
+            switch (this) {
+                .buffers => {
+                    defer bun.default_allocator.free(this.buffers);
+                    return JSC.To.JS.withType([]const Buffer, this.buffers, ctx, exception);
+                },
+                .files => {
+                    // automatically freed
+                    return JSC.To.JS.withType([]const bun.String, this.files, ctx, exception);
+                },
+            }
+        }
+    };
 };
 
 /// Bun's implementation of the Node.js "fs" module
@@ -3766,8 +3791,20 @@ pub const NodeFS = struct {
 
         return Maybe(Return.Open).todo;
     }
-    pub fn openDir(_: *NodeFS, _: Arguments.OpenDir, comptime _: Flavor) Maybe(Return.OpenDir) {
-        return Maybe(Return.OpenDir).todo;
+    pub fn opendir(this: *NodeFS, args: Arguments.OpenDir, comptime flavor: Flavor) Maybe(Return.Opendir) {
+        switch (comptime flavor) {
+            .sync => {
+                const path = args.path.sliceZ(&this.sync_error_buf);
+                return switch (Syscall.openat(path, @intFromEnum(args.flags), args.mode)) {
+                //     .err => |err| .{
+                //         .err = err.withPath(args.path.slice()),
+                //     },
+                //     .result => |fd| .{ .result = fd },
+                // };
+            },
+            else => {},
+        }
+        return Maybe(Return.Opendir).todo;
     }
 
     fn _read(_: *NodeFS, args: Arguments.Read, comptime flavor: Flavor) Maybe(Return.Read) {

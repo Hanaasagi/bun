@@ -217,6 +217,7 @@ pub const NodeJSFS = struct {
     pub const mkdir = call(.mkdir);
     pub const mkdtemp = call(.mkdtemp);
     pub const open = call(.open);
+    pub const opendir = call(.opendir);
     pub const read = call(.read);
     pub const write = call(.write);
     pub const readdir = call(.readdir);
@@ -253,6 +254,7 @@ pub const NodeJSFS = struct {
     pub const mkdirSync = callSync(.mkdir);
     pub const mkdtempSync = callSync(.mkdtemp);
     pub const openSync = callSync(.open);
+    pub const opendirSync = callSync(.opendir);
     pub const readSync = callSync(.read);
     pub const writeSync = callSync(.write);
     pub const readdirSync = callSync(.readdir);
@@ -289,6 +291,4 @@ pub const NodeJSFS = struct {
 
     // Not implemented yet:
     const notimpl = fdatasync;
-    pub const opendir = notimpl;
-    pub const opendirSync = notimpl;
 };

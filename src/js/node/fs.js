@@ -21,7 +21,7 @@ class FSWatcher extends EventEmitter {
     }
 
     if (typeof listener !== "function") {
-      listener = () => {};
+      listener = () => { };
     }
 
     this.#listener = listener;
@@ -65,8 +65,8 @@ class FSWatcher extends EventEmitter {
 }
 
 var access = function access(...args) {
-    callbackify(fs.accessSync, args);
-  },
+  callbackify(fs.accessSync, args);
+},
   appendFile = function appendFile(...args) {
     callbackify(fs.appendFileSync, args);
   },
@@ -126,6 +126,9 @@ var access = function access(...args) {
   },
   open = function open(...args) {
     callbackify(fs.openSync, args);
+  },
+  opendr = function opendir(...args) {
+    callbackify(fs.opendirSync, args);
   },
   read = function read(fd, buffer, offsetOrOptions, length, position, callback) {
     let offset = offsetOrOptions;
@@ -251,6 +254,7 @@ var access = function access(...args) {
   mkdirSync = fs.mkdirSync.bind(fs),
   mkdtempSync = fs.mkdtempSync.bind(fs),
   openSync = fs.openSync.bind(fs),
+  opendirSync = fs.opendirSync.bind(fs),
   readSync = fs.readSync.bind(fs),
   writeSync = fs.writeSync.bind(fs),
   readdirSync = fs.readdirSync.bind(fs),
@@ -375,7 +379,7 @@ var defaultReadStreamOptions = {
 
 var ReadStreamClass;
 
-ReadStream = (function (InternalReadStream) {
+ReadStream = (function(InternalReadStream) {
   ReadStreamClass = InternalReadStream;
   Object.defineProperty(ReadStreamClass.prototype, Symbol.toStringTag, {
     value: "ReadStream",
@@ -719,7 +723,7 @@ var defaultWriteStreamOptions = {
 };
 
 var WriteStreamClass;
-WriteStream = (function (InternalWriteStream) {
+WriteStream = (function(InternalWriteStream) {
   WriteStreamClass = InternalWriteStream;
   Object.defineProperty(WriteStreamClass.prototype, Symbol.toStringTag, {
     value: "WritesStream",
@@ -840,7 +844,7 @@ WriteStream = (function (InternalWriteStream) {
     destroySoon = this.end; // TODO: what is this for?
 
     // noop, node has deprecated this
-    open() {}
+    open() { }
 
     path;
     fd;
@@ -966,12 +970,12 @@ WriteStream = (function (InternalWriteStream) {
         encoding,
         native
           ? (err, bytes) => {
-              this[kIoDone] = false;
-              this.#handleWrite(err, bytes);
-              this.emit(kIoDone);
-              if (cb) !err ? cb() : cb(err);
-            }
-          : () => {},
+            this[kIoDone] = false;
+            this.#handleWrite(err, bytes);
+            this.emit(kIoDone);
+            if (cb) !err ? cb() : cb(err);
+          }
+          : () => { },
         native,
       );
     }
@@ -1115,6 +1119,8 @@ export default {
   mkdtempSync,
   open,
   openSync,
+  opendir,
+  opendirSync,
   promises,
   read,
   readFile,
