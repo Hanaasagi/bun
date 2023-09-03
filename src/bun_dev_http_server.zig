@@ -2817,9 +2817,14 @@ pub const Server = struct {
         // try listener.ack(true);
 
         var port: u16 = 3000;
+        var retry_range = true;
+
+        std.log.err("\r\n server.transform_options.port {any}", .{server.transform_options.port});
+        std.log.err("\r\n server.bundler.options.origin.getPort {any}", .{server.bundler.options.origin.getPort()});
 
         if (server.transform_options.port) |_port| {
             port = _port;
+            retry_range = false;
         } else if (server.bundler.options.origin.getPort()) |_port| {
             port = _port;
         }
@@ -2834,7 +2839,9 @@ pub const Server = struct {
                 )) catch |err| {
                     switch (err) {
                         error.AddressInUse => {
-                            port += 1;
+                            if (retry_range) {
+                                port += 1;
+                            }
                             continue :restart;
                         },
                         else => {
