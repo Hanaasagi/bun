@@ -1487,6 +1487,7 @@ pub const Command = struct {
                     return;
                 }
 
+                var template_name: ?string = null;
                 var template_name_start: usize = 0;
                 var positionals: [2]string = undefined;
 
@@ -1497,9 +1498,10 @@ pub const Command = struct {
                     var remainder_i: usize = 0;
                     while (remainder_i < remainder.len and positional_i < positionals.len) : (remainder_i += 1) {
                         var slice = std.mem.trim(u8, bun.asByteSlice(remainder[remainder_i]), " \t\n;");
-                        if (slice.len > 0 and !strings.hasPrefixComptime(slice, "--")) {
-                            if (positional_i == 0) {
+                        if (slice.len > 0) {
+                            if (template_name_start == 0 and !strings.hasPrefixComptime(slice, "--")) {
                                 template_name_start = remainder_i + 2;
+                                template_name = slice;
                             }
                             positionals[positional_i] = slice;
                             positional_i += 1;
@@ -1507,22 +1509,21 @@ pub const Command = struct {
                     }
                 }
                 var positionals_ = positionals[0..positional_i];
+                if (template_name) |template_name_| {
+                    const use_bunx = !HardcodedNonBunXList.has(template_name_) and
+                        (!strings.containsComptime(template_name_, "/") or
+                        strings.startsWithChar(template_name_, '@'));
 
-                const template_name = positionals[0];
+                    if (use_bunx) {
+                        const bunx_args = try allocator.alloc([*:0]const u8, args.len - template_name_start);
+                        bunx_args[0] = try BunxCommand.addCreatePrefix(allocator, template_name_);
+                        for (bunx_args[1..], args[template_name_start + 1 ..]) |*dest, src| {
+                            dest.* = src;
+                        }
 
-                const use_bunx = !HardcodedNonBunXList.has(template_name) and
-                    (!strings.containsComptime(template_name, "/") or
-                    strings.startsWithChar(template_name, '@'));
-
-                if (use_bunx) {
-                    const bunx_args = try allocator.alloc([*:0]const u8, args.len - template_name_start);
-                    bunx_args[0] = try BunxCommand.addCreatePrefix(allocator, template_name);
-                    for (bunx_args[1..], args[template_name_start + 1 ..]) |*dest, src| {
-                        dest.* = src;
+                        try BunxCommand.exec(ctx, bunx_args);
+                        return;
                     }
-
-                    try BunxCommand.exec(ctx, bunx_args);
-                    return;
                 }
 
                 try CreateCommand.exec(ctx, positionals_);
