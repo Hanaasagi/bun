@@ -168,6 +168,7 @@ it("path.parse().name", () => {
   expectStrictEqual(path.parse("//aaa").name, "aaa");
   expectStrictEqual(path.parse("/aaa").name, "aaa");
   expectStrictEqual(path.parse("aaa.").name, "aaa");
+  expectStrictEqual(path.parse("新建文件夾/文件.txt").name, "文件");
 
   // On unix a backslash is just treated as any other character.
   expectStrictEqual(path.posix.parse("\\dir\\name.ext").name, "\\dir\\name");
@@ -196,6 +197,7 @@ it.todo("path.parse() windows edition - drive letter", () => {
   expectStrictEqual(path.win32.parse("C:\\.").name, ".");
   expectStrictEqual(path.win32.parse("C:\\.ext").name, ".ext");
   expectStrictEqual(path.win32.parse("C:\\dir\\name.ext").name, "name");
+  expectStrictEqual(path.win32.parse("C:\\新建文件夾\\文件.txt").name, "文件");
   expectStrictEqual(path.win32.parse("C:name.ext").name, "name");
   expectStrictEqual(path.win32.parse("C:name.ext\\").name, "name");
   expectStrictEqual(path.win32.parse("C:name.ext\\\\").name, "name");
@@ -231,6 +233,8 @@ it("path.basename", () => {
   strictEqual(path.basename("/a/b"), "b");
   strictEqual(path.basename("//a"), "a");
   strictEqual(path.basename("a", "a"), "");
+  strictEqual(path.basename("新建文件夾/文件.txt"), "文件.txt");
+  strictEqual(path.basename("新建文件夾/新建文件夾2/"), "新建文件夾2");
 
   // // On Windows a backslash acts as a path separator.
   strictEqual(path.win32.basename("\\dir\\basename.ext"), "basename.ext");
@@ -249,6 +253,7 @@ it("path.basename", () => {
   strictEqual(path.win32.basename("C:."), ".");
   strictEqual(path.win32.basename("C:\\"), "");
   strictEqual(path.win32.basename("C:\\dir\\base.ext"), "base.ext");
+  strictEqual(path.win32.basename("C:\\新建文件夾\\文件.txt"), "文件.txt");
   strictEqual(path.win32.basename("C:\\basename.ext"), "basename.ext");
   strictEqual(path.win32.basename("C:basename.ext"), "basename.ext");
   strictEqual(path.win32.basename("C:basename.ext\\"), "basename.ext");
@@ -327,6 +332,8 @@ it("path.join", () => {
         [["/", "", "/foo"], "/foo"],
         [["", "/", "foo"], "/foo"],
         [["", "/", "/foo"], "/foo"],
+        [["新建文件夾", "/", "文件.txt"], "新建文件夾/文件.txt"],
+        [["/新建文件夾", "../程式/", "文件.txt"], "/程式/文件.txt"],
       ],
     ],
   ];
@@ -490,6 +497,9 @@ it("path.relative", () => {
         ["../", "../../", parentIsRoot ? "" : ".."],
         ["../../", "../", parentIsRoot ? "" : path.basename(cwdParent)],
         ["../../", "../../", ""],
+        ["/文檔/新建文件夾", "/文檔", ".."],
+        ["/文檔/新建文件夾", "/文檔/新建文件夾2", "../新建文件夾2"],
+        ["/文檔/", "/文檔/新建文件夾", "新建文件夾"],
       ],
     ],
   ];
@@ -580,6 +590,8 @@ it("path.normalize", () => {
   strictEqual(path.posix.normalize("../.../../foobar/../../../bar/../../baz"), "../../../../baz");
   strictEqual(path.posix.normalize("foo/bar\\baz"), "foo/bar\\baz");
   strictEqual(path.posix.normalize(""), ".");
+  strictEqual(path.posix.normalize("./文檔///新建文件夾/../新建文件夾2/文件.txt"), "文檔/新建文件夾2/文件.txt");
+  strictEqual(path.posix.normalize("/文檔/../../../新建文件夾"), "/新建文件夾");
 });
 
 it("path.resolve", () => {
@@ -619,6 +631,8 @@ it("path.resolve", () => {
         [["."], process.cwd()],
         [["/some/dir", ".", "/absolute/"], "/absolute"],
         [["/foo/tmp.3/", "../tmp.3/cycles/root.js"], "/foo/tmp.3/cycles/root.js"],
+        [["/文檔/新建文件夾", "../", "文件.txt/"], "/文檔/文件.txt"],
+        [["/文檔/新建文件夾", ".", "/程式/"], "/程式"],
       ],
     ],
   ];
@@ -810,6 +824,16 @@ describe("path.parse and path.format", () => {
         base: "another_dir",
         ext: "",
         name: "another_dir",
+      },
+    },
+    {
+      input: "/文檔/新建文件夾/文件.txt",
+      expected: {
+        root: "/",
+        dir: "/文檔/新建文件夾",
+        base: "文件.txt",
+        ext: ".txt",
+        name: "文件",
       },
     },
   ];
