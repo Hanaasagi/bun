@@ -1142,22 +1142,43 @@ extern "C"
     }
   }
 
-  void uws_res_end_without_body(int ssl, uws_res_t *res)
+  void uws_res_end_without_body(int ssl, uws_res_t *res, bool close_connection)
   {
     if (ssl)
     {
       uWS::HttpResponse<true> *uwsRes = (uWS::HttpResponse<true> *)res;
       auto *data = uwsRes->getHttpResponseData();
-      data->state |= uWS::HttpResponseData<true>::HTTP_END_CALLED;
+      if (!close_connection)
+      {
+        data->state |= uWS::HttpResponseData<true>::HTTP_END_CALLED;
+      }
+      else
+      {
+        if ((data->state & uWS::HttpResponseData<true>::HTTP_CONNECTION_CLOSE) == 0)
+        {
+          uwsRes->writeHeader("Connection", "close");
+        }
+        data->state |= uWS::HttpResponseData<true>::HTTP_CONNECTION_CLOSE;
+      }
       data->markDone();
       us_socket_timeout(true, (us_socket_t *)uwsRes, uWS::HTTP_TIMEOUT_S);
     }
     else
     {
-
       uWS::HttpResponse<false> *uwsRes = (uWS::HttpResponse<false> *)res;
       auto *data = uwsRes->getHttpResponseData();
-      data->state |= uWS::HttpResponseData<false>::HTTP_END_CALLED;
+      if (!close_connection)
+      {
+        data->state |= uWS::HttpResponseData<false>::HTTP_END_CALLED;
+      }
+      else
+      {
+        if ((data->state & uWS::HttpResponseData<false>::HTTP_CONNECTION_CLOSE) == 0)
+        {
+          uwsRes->writeHeader("Connection", "close");
+        }
+        data->state |= uWS::HttpResponseData<false>::HTTP_CONNECTION_CLOSE;
+      }
       data->markDone();
       us_socket_timeout(false, (us_socket_t *)uwsRes, uWS::HTTP_TIMEOUT_S);
     }
